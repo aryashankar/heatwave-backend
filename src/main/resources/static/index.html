@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ThermoSafe — Extreme Heatwave Early Warning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0a08;
+    --bg-raised: #16110c;
+    --rule: #2b241c;
+    --text: #f3ede2;
+    --text-dim: #a89a86;
+    --text-faint: #5c5244;
+    --safe: #4caf6a;
+    --caution: #d9a441;
+    --danger: #e2701f;
+    --extreme: #d1342c;
+    --brass: #c9a15a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { animation-duration: 0.001s !important; animation-iteration-count: 1 !important; }
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.55;
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  h1, h2, h3 { font-family: 'Big Shoulders Display', sans-serif; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+
+  @keyframes riseIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 50% { opacity: 0.35; } }
+
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(12,10,8,0.9);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--rule);
+    padding: 16px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .nav-brand {
+    font-family: 'Big Shoulders Display', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    letter-spacing: 0.01em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand-pulse { width: 6px; height: 6px; background: var(--safe); animation: pulse 2.2s infinite; flex-shrink: 0; }
+
+  .nav-links { display: flex; gap: 26px; list-style: none; }
+  .nav-links a { color: var(--text-dim); text-decoration: none; font-size: 13px; transition: color 0.15s; }
+  .nav-links a:hover { color: var(--text); }
+
+  /* HERO */
+  .hero {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 100px 24px 80px;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 40px;
+    align-items: center;
+  }
+  @media (max-width: 800px) { .hero { grid-template-columns: 1fr; padding-top: 70px; } }
+
+  .hero-eyebrow {
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: riseIn 0.5s ease both;
+  }
+  .hero-eyebrow-dot { width: 6px; height: 6px; background: var(--extreme); }
+  .hero h1 {
+    font-size: clamp(38px, 5.2vw, 60px);
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    line-height: 1.02;
+    animation: riseIn 0.55s 0.05s ease both;
+  }
+  .hero p {
+    color: var(--text-dim);
+    font-size: 17px;
+    max-width: 52ch;
+    margin: 22px 0 0;
+    animation: riseIn 0.55s 0.1s ease both;
+  }
+  .hero-cta {
+    margin-top: 30px;
+    display: inline-block;
+    background: var(--brass);
+    color: #0c0a08;
+    font-weight: 600;
+    padding: 12px 24px;
+    text-decoration: none;
+    font-size: 14px;
+    animation: riseIn 0.55s 0.15s ease both;
+  }
+  .hero-note {
+    margin-top: 16px;
+    color: var(--text-faint);
+    font-size: 12px;
+    animation: riseIn 0.55s 0.2s ease both;
+  }
+
+  /* HEAT ORB */
+  @keyframes orbPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+  .heat-orb-wrap { display: flex; justify-content: center; animation: riseIn 0.6s 0.2s ease both; }
+  .heat-orb {
+    --orb-color: var(--text-faint);
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--orb-color) 45%, white 25%), var(--orb-color) 55%, color-mix(in srgb, var(--orb-color) 70%, black) 100%);
+    box-shadow: 0 0 50px color-mix(in srgb, var(--orb-color) 35%, transparent), 0 0 120px color-mix(in srgb, var(--orb-color) 18%, transparent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: orbPulse 4s infinite ease-in-out;
+    transition: background 0.6s ease, box-shadow 0.6s ease;
+  }
+  .orb-content { text-align: center; }
+  .orb-temp { font-family: 'JetBrains Mono', monospace; font-size: 56px; font-weight: 700; color: #0c0a08; line-height: 1; }
+  .orb-sub { margin-top: 8px; font-size: 12px; color: rgba(12,10,8,0.75); max-width: 180px; }
+  @media (max-width: 800px) { .heat-orb { width: 210px; height: 210px; } .orb-temp { font-size: 46px; } }
+
+  section { max-width: 1080px; margin: 0 auto; padding: 56px 24px; }
+  .section-head { margin-bottom: 26px; border-bottom: 1px solid var(--rule); padding-bottom: 18px; }
+  .section-head h2 { font-size: 26px; font-weight: 700; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .section-head p { color: var(--text-dim); font-size: 14px; margin-top: 6px; }
+
+  .active-chip {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 9px;
+    background: color-mix(in srgb, var(--extreme) 16%, transparent);
+    color: var(--extreme);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+  }
+  .active-chip::before { content: ''; width: 6px; height: 6px; background: var(--extreme); animation: pulse 1.4s infinite; }
+
+  .status-line { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-dim); }
+  .dot { width: 7px; height: 7px; background: var(--safe); }
+  .dot.loading { background: var(--text-faint); animation: pulse 1.2s infinite; }
+
+  .error-banner {
+    background: color-mix(in srgb, var(--extreme) 10%, var(--bg-raised));
+    border-left: 3px solid var(--extreme);
+    padding: 14px 18px;
+    font-size: 13px;
+    display: none;
+    margin-bottom: 22px;
+  }
+  .error-banner code { font-family: 'JetBrains Mono', monospace; background: rgba(255,255,255,0.07); padding: 2px 5px; }
+
+  /* LEGEND STRIP (replaces boxed stat chips) */
+  .legend-strip { display: flex; flex-wrap: wrap; gap: 22px; margin-bottom: 30px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-dim); }
+  .legend-item { display: flex; align-items: center; gap: 7px; }
+  .legend-dot { width: 8px; height: 8px; flex-shrink: 0; }
+  .legend-count { color: var(--text); font-weight: 700; }
+
+  /* SHARED SCALE VISUAL */
+  .scale-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1000 / 280;
+    margin-bottom: 8px;
+  }
+  .scale-wrap svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .scale-labels { position: absolute; inset: 0; }
+  .scale-marker {
+    position: absolute;
+    transform: translate(-50%, -100%);
+    text-align: center;
+    white-space: nowrap;
+    animation: riseIn 0.4s ease both;
+  }
+  .scale-marker-city { font-size: 12px; font-weight: 500; color: var(--text); }
+  .scale-marker-value { font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 700; }
+  .scale-marker-tier { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: none; margin-top: 1px; }
+
+  /* CITY LIST (replaces card grid) */
+  .city-list { margin-top: 40px; }
+  .city-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 4px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .city-row-left { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .city-row-name { font-size: 16px; font-weight: 500; }
+  .city-row-tier { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--tier-color, var(--text-dim)); }
+  .city-row-right { display: flex; align-items: baseline; gap: 18px; font-family: 'JetBrains Mono', monospace; }
+  .city-row-wbgt { font-size: 22px; font-weight: 700; color: var(--tier-color, var(--text)); }
+  .city-row-utci { font-size: 12px; color: var(--text-faint); }
+
+  /* CITY TABS / FILTER TABS — underline style */
+  .tab-row { display: flex; gap: 22px; margin-bottom: 26px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); }
+  .tab-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    padding: 0 0 12px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--brass); border-color: var(--brass); }
+
+  /* FORECAST CHART */
+  .forecast-chart-wrap { width: 100%; }
+  .forecast-chart-wrap svg { width: 100%; height: auto; display: block; }
+
+  /* ALERTS TIMELINE */
+  #alertsLog { display: flex; flex-direction: column; }
+  .alert-row { display: flex; gap: 14px; padding: 16px 4px; border-bottom: 1px solid var(--rule); }
+  .alert-row.is-new { animation: newFlash 1.8s ease; }
+  @keyframes newFlash {
+    0% { background: color-mix(in srgb, var(--tier-color, var(--text-faint)) 12%, transparent); }
+    100% { background: transparent; }
+  }
+  .alert-node { width: 8px; height: 8px; background: var(--tier-color, var(--text-faint)); margin-top: 6px; flex-shrink: 0; }
+  .alert-body { flex: 1; min-width: 0; }
+  .alert-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .alert-city { font-weight: 500; font-size: 14px; }
+  .alert-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 2px 8px;
+    background: color-mix(in srgb, var(--tier-color, var(--text-faint)) 18%, transparent);
+    color: var(--tier-color, var(--text));
+    white-space: nowrap;
+  }
+  .alert-new-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.04em;
+    color: var(--bg); background: var(--tier-color, var(--brass));
+    padding: 2px 6px;
+  }
+  .alert-msg { color: var(--text-dim); font-size: 13px; margin-top: 4px; }
+  .alert-time { color: var(--text-faint); font-size: 11px; white-space: nowrap; flex-shrink: 0; margin-top: 6px; }
+  .alerts-empty { color: var(--text-dim); font-size: 14px; padding: 18px 4px; }
+
+  /* SAFETY CALLOUT (dynamic, tier-driven) */
+  .safety-callout {
+    display: none;
+    border-left: 3px solid var(--tier-color, var(--rule));
+    background: color-mix(in srgb, var(--tier-color, var(--bg-raised)) 8%, var(--bg-raised));
+    padding: 16px 20px;
+    margin-top: 30px;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .safety-callout.show { display: flex; }
+  .safety-callout-dot { width: 8px; height: 8px; background: var(--tier-color); margin-top: 6px; flex-shrink: 0; animation: pulse 1.6s infinite; }
+  .safety-callout-title { font-weight: 600; font-size: 14px; color: var(--tier-color); }
+  .safety-callout-body { color: var(--text-dim); font-size: 13px; margin-top: 4px; }
+
+  /* SYSTEM PANEL (single unified instrument panel) */
+  .system-panel {
+    border: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  @media (max-width: 760px) { .system-panel { grid-template-columns: 1fr; } }
+  .system-col { padding: 26px 28px; }
+  .system-col:first-child { border-right: 1px solid var(--rule); }
+  @media (max-width: 760px) { .system-col:first-child { border-right: none; border-bottom: 1px solid var(--rule); } }
+  .system-col h3 { font-size: 14px; font-weight: 600; font-family: 'Inter', sans-serif; margin-bottom: 4px; }
+  .system-col-sub { font-size: 12px; color: var(--text-faint); margin-bottom: 18px; }
+
+  .status-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--rule); }
+  .status-row:last-of-type { border-bottom: none; }
+  .status-row-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .status-row-dot { width: 7px; height: 7px; flex-shrink: 0; }
+  .status-row-dot.ok { background: var(--safe); }
+  .status-row-dot.down { background: var(--text-faint); }
+  .status-row-name { font-size: 13px; font-weight: 500; }
+  .status-row-detail { font-size: 11px; color: var(--text-faint); }
+  .status-row-pill { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-dim); flex-shrink: 0; }
+  .status-note { margin-top: 14px; padding: 10px 0 0; font-size: 12px; color: var(--text-dim); border-top: 1px solid var(--rule); }
+
+  .contract-row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; font-size: 13px; border-bottom: 1px solid var(--rule); }
+  .contract-row:last-of-type { border-bottom: none; }
+  .contract-row-label { color: var(--text-dim); }
+  .contract-row-value { font-family: 'JetBrains Mono', monospace; font-size: 12px; text-align: right; }
+
+  .methodology-toggle { background: none; border: none; color: var(--brass); font-size: 13px; font-family: 'Inter', sans-serif; cursor: pointer; margin-top: 14px; padding: 0; }
+  .methodology-body { display: none; margin-top: 10px; font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+  .methodology-body.show { display: block; }
+
+  /* SAFETY BANNER */
+  .safety-banner {
+    background: var(--bg-raised);
+    border-top: 3px solid var(--danger);
+    padding: 34px 36px;
+  }
+  .safety-banner-eyebrow { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--danger); margin-bottom: 12px; font-family: 'JetBrains Mono', monospace; }
+  .safety-banner h2 { font-size: 26px; font-weight: 700; line-height: 1.2; }
+  .safety-banner p { margin-top: 10px; max-width: 58ch; color: var(--text-dim); font-size: 14px; }
+  .safety-banner-toggle { display: inline-block; margin-top: 16px; background: none; border: none; color: var(--brass); font-size: 13px; cursor: pointer; padding: 0; font-family: 'Inter', sans-serif; }
+  .safety-banner-tips { display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--rule); }
+  .safety-banner-tips.show { display: block; }
+  .safety-banner-tips ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .safety-banner-tips li { font-size: 13px; color: var(--text-dim); padding-left: 18px; position: relative; }
+  .safety-banner-tips li::before { content: '—'; position: absolute; left: 0; color: var(--text-faint); }
+
+  footer { border-top: 1px solid var(--rule); padding: 30px 24px; text-align: center; color: var(--text-faint); font-size: 12px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand"><span class="brand-pulse"></span>ThermoSafe</div>
+  <ul class="nav-links">
+    <li><a href="#dashboard">Dashboard</a></li>
+    <li><a href="#forecast">Forecast</a></li>
+    <li><a href="#alerts">Alerts</a></li>
+    <li><a href="#methodology">About the index</a></li>
+  </ul>
+</nav>
+
+<div class="hero">
+  <div>
+    <div class="hero-eyebrow mono"><span class="hero-eyebrow-dot"></span>Live block intelligence</div>
+    <h1>Know the heat before it becomes a crisis.</h1>
+    <p>Live Wet-Bulb Globe Temperature and human thermal stress readings for Indian cities, computed from real-time meteorological data.</p>
+    <a href="#dashboard" class="hero-cta">See live risk</a>
+    <p class="hero-note mono">Tracking 4 cities · refreshed every 60 seconds</p>
+  </div>
+  <div class="heat-orb-wrap">
+    <div class="heat-orb" id="heatOrb">
+      <div class="orb-content">
+        <div class="orb-temp mono" id="orbTemp">--°</div>
+        <div class="orb-sub" id="orbSub">Loading live data…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section id="dashboard">
+  <div class="section-head">
+    <h2>Live City Risk</h2>
+    <p>Current thermal stress across major cities, updated from live weather data.</p>
+    <div class="status-line">
+      <div class="dot loading" id="dashDot"></div>
+      <span id="dashStatus">Connecting…</span>
+    </div>
+  </div>
+  <div class="error-banner" id="dashError">
+    We couldn't reach live data just now. Please try refreshing in a moment.
+  </div>
+  <div class="legend-strip" id="legendStrip"></div>
+
+  <div class="scale-wrap" id="scaleWrap">
+    <svg id="scaleSvg" viewBox="0 0 1000 280"></svg>
+    <div class="scale-labels" id="scaleLabels"></div>
+  </div>
+
+  <div class="city-list" id="cityList"></div>
+
+  <div class="safety-callout" id="safetyCallout">
+    <div class="safety-callout-dot"></div>
+    <div>
+      <div class="safety-callout-title" id="safetyTitle"></div>
+      <div class="safety-callout-body" id="safetyBody"></div>
+    </div>
+  </div>
+</section>
+
+<section id="forecast">
+  <div class="section-head">
+    <h2>6-Day Forecast</h2>
+    <p>Projected thermal stress trend based on forecasted temperature and humidity.</p>
+  </div>
+  <div class="tab-row" id="cityTabs"></div>
+  <div class="error-banner" id="forecastError">Couldn't load forecast data for this city.</div>
+  <div class="forecast-chart-wrap" id="forecastChart"></div>
+</section>
+
+<section id="alerts">
+  <div class="section-head">
+    <h2>Alert Log <span class="active-chip" id="alertsActiveCount"></span></h2>
+    <p>A running record of tier changes as cities cross into or out of Danger and Extreme Danger.</p>
+  </div>
+  <div class="tab-row" id="alertFilterTabs">
+    <button class="tab-btn active" data-filter="all">All activity</button>
+    <button class="tab-btn" data-filter="active">Active risk only</button>
+  </div>
+  <div id="alertsLog"></div>
+</section>
+
+<section id="methodology">
+  <div class="section-head">
+    <h2>Understanding the Numbers</h2>
+    <p>What WBGT and UTCI actually measure, and why the risk tiers are set where they are.</p>
+  </div>
+  <div class="system-panel">
+    <div class="system-col">
+      <h3>What we measure</h3>
+      <div class="system-col-sub">Two heat-stress indices, not just air temperature.</div>
+      <p style="font-size:13px; color:var(--text-dim); line-height:1.7;">
+        <strong style="color:var(--text);">WBGT</strong> (Wet-Bulb Globe Temperature) combines air temperature, humidity, wind, and solar radiation into a single number — it reflects how heat actually stresses the body far better than air temperature alone, and is the standard metric behind most occupational heat-safety guidelines worldwide.
+      </p>
+      <p style="font-size:13px; color:var(--text-dim); line-height:1.7; margin-top:12px;">
+        We estimate it using the Australian Bureau of Meteorology's simplified outdoor formula, since a physical black-globe sensor isn't available. <strong style="color:var(--text);">UTCI</strong> is a lighter complementary index, adjusted for wind and solar load, used alongside WBGT rather than in place of it.
+      </p>
+      <p style="font-size:13px; color:var(--text-dim); line-height:1.7; margin-top:12px;">
+        Both are working approximations for early warning — not clinical-grade readings.
+      </p>
+    </div>
+    <div class="system-col">
+      <h3>Why these thresholds</h3>
+      <div class="system-col-sub">Adjusted for a heat-acclimatized population.</div>
+      <p style="font-size:13px; color:var(--text-dim); line-height:1.7;">
+        Generic WBGT thresholds are often calibrated for temperate climates and unacclimatized populations. People living in Indian cities are typically acclimatized to higher heat and humidity, and occupational heat-exposure research shows acclimatized individuals tolerate meaningfully higher WBGT before the same physiological strain sets in. We've raised our tier boundaries to reflect that:
+      </p>
+      <div class="contract-row"><span class="contract-row-label">Safe</span><span class="contract-row-value">below 30°C WBGT</span></div>
+      <div class="contract-row"><span class="contract-row-label">Caution</span><span class="contract-row-value">30–32°C</span></div>
+      <div class="contract-row"><span class="contract-row-label">Danger</span><span class="contract-row-value">32–34°C</span></div>
+      <div class="contract-row"><span class="contract-row-label">Extreme Danger</span><span class="contract-row-value">above 34°C</span></div>
+      <p style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-top:12px;">
+        These are working estimates for an early-warning tool, not clinical thresholds — they'd benefit from refinement against local heat-illness health data.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section id="guidance">
+  <div class="safety-banner">
+    <div class="safety-banner-eyebrow">FOR EVERY NEIGHBOR</div>
+    <h2>Small actions can lower heat risk.</h2>
+    <p>Pause outdoor work during peak hours, drink water regularly, and check in with someone who may need help — especially older neighbors, outdoor workers, and young children.</p>
+    <button class="safety-banner-toggle" id="safetyTipsToggle">See safety guidance</button>
+    <div class="safety-banner-tips" id="safetyTipsBody">
+      <ul>
+        <li>Reschedule strenuous outdoor work to early morning or evening.</li>
+        <li>Drink water regularly through the day, even before feeling thirsty.</li>
+        <li>Wear light, loose clothing and stay in shade when possible.</li>
+        <li>Check on elderly neighbors, outdoor workers, and young children.</li>
+        <li>Know the signs of heat exhaustion: dizziness, nausea, heavy sweating, weakness.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  ThermoSafe — Extreme Heatwave Early Warning &amp; Human Thermal Stress Index. Built for Smart India Hackathon 2026, Problem Statement 83.
+</footer>
+
+<script>
+  const API_BASE = "https://heatwave-backend-production.up.railway.app";
+  const CITIES = ["Mumbai", "Delhi", "Kolkata", "Bengaluru"];
+
+  const TIER_COLORS = { safe: "var(--safe)", caution: "var(--caution)", danger: "var(--danger)", extreme_danger: "var(--extreme)" };
+  const TIER_HEX = { safe: "#4caf6a", caution: "#d9a441", danger: "#e2701f", extreme_danger: "#d1342c" };
+  const TIER_LABELS = { safe: "Safe", caution: "Caution", danger: "Danger", extreme_danger: "Extreme Danger" };
+  const TIER_ORDER = ["safe", "caution", "danger", "extreme_danger"];
+  const SAFETY_COPY = {
+    caution: { title: "Caution advised", body: "Limit strenuous outdoor activity during peak afternoon hours and stay hydrated." },
+    danger: { title: "Danger — take precautions", body: "Avoid prolonged outdoor exertion. Seek shade, hydrate frequently, and check on vulnerable people nearby." },
+    extreme_danger: { title: "Extreme danger — limit outdoor exposure", body: "Postpone outdoor activity where possible. Heat stress risk is high even for short periods in direct sun." }
+  };
+
+  let previousTiers = {};
+  let alertHistory = [];
+  let alertFilter = 'all';
+
+  // ---------- SHARED SCALE ----------
+  const SCALE_MIN = 20, SCALE_MAX = 40;
+  function xForWbgt(w) {
+    const t = Math.max(0, Math.min(1, (w - SCALE_MIN) / (SCALE_MAX - SCALE_MIN)));
+    return 50 + t * 900;
+  }
+
+  function renderScale(data) {
+    const baseline = 165;
+    const segBounds = [20, 30, 32, 34, 40];
+    const segColors = [TIER_HEX.safe, TIER_HEX.caution, TIER_HEX.danger, TIER_HEX.extreme_danger];
+    let segs = '';
+    for (let i = 0; i < segColors.length; i++) {
+      const x0 = xForWbgt(segBounds[i]), x1 = xForWbgt(segBounds[i + 1]);
+      segs += `<rect x="${x0}" y="${baseline - 5}" width="${x1 - x0}" height="10" fill="${segColors[i]}" opacity="0.55"/>`;
+    }
+
+    let ticks = '';
+    for (let t = 20; t <= 40; t += 5) {
+      const x = xForWbgt(t);
+      ticks += `<line x1="${x}" y1="${baseline + 5}" x2="${x}" y2="${baseline + 12}" stroke="#5c5244" stroke-width="1"/>`;
+      ticks += `<text x="${x}" y="${baseline + 30}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#5c5244">${t}°</text>`;
+    }
+
+    const sorted = data.slice().sort((a, b) => xForWbgt(a.wbgt) - xForWbgt(b.wbgt));
+    const laneOf = {};
+    sorted.forEach((c, i) => { laneOf[c.cityName] = i % 2; });
+
+    let stems = '';
+    const svgLabelPositions = [];
+    data.forEach(city => {
+      const x = xForWbgt(city.wbgt);
+      const lane = laneOf[city.cityName];
+      const stemLen = lane === 0 ? 35 : 100;
+      const topY = baseline - stemLen;
+      const color = TIER_HEX[city.tier] || '#5c5244';
+      stems += `<line x1="${x}" y1="${baseline - 5}" x2="${x}" y2="${topY}" stroke="${color}" stroke-width="1.5"/>`;
+      stems += `<circle cx="${x}" cy="${topY}" r="3.5" fill="${color}"/>`;
+      svgLabelPositions.push({ city, x, topY });
+    });
+
+    document.getElementById('scaleSvg').innerHTML = segs + ticks + stems;
+
+    const labelsWrap = document.getElementById('scaleLabels');
+    labelsWrap.innerHTML = '';
+    svgLabelPositions.forEach(({ city, x, topY }) => {
+      const color = TIER_COLORS[city.tier] || 'var(--text-faint)';
+      const label = TIER_LABELS[city.tier] || city.tier;
+      const el = document.createElement('div');
+      el.className = 'scale-marker';
+      el.style.left = (x / 1000 * 100) + '%';
+      el.style.top = ((topY - 6) / 280 * 100) + '%';
+      el.innerHTML = `
+        <div class="scale-marker-city">${city.cityName}</div>
+        <div class="scale-marker-value mono" style="color:${color}">${city.wbgt.toFixed(1)}°</div>
+        <div class="scale-marker-tier mono" style="color:${color}">${label}</div>
+      `;
+      labelsWrap.appendChild(el);
+    });
+  }
+
+  // ---------- LEGEND + CITY LIST ----------
+  function renderLegend(data) {
+    const counts = { safe: 0, caution: 0, danger: 0, extreme_danger: 0 };
+    data.forEach(c => { if (counts[c.tier] !== undefined) counts[c.tier]++; });
+    document.getElementById('legendStrip').innerHTML = TIER_ORDER.map(tier => `
+      <div class="legend-item">
+        <span class="legend-dot" style="background:${TIER_HEX[tier]}"></span>
+        <span class="legend-count">${counts[tier]}</span>
+        <span>${TIER_LABELS[tier]}</span>
+      </div>
+    `).join('');
+  }
+
+  function renderCityList(data) {
+    const list = document.getElementById('cityList');
+    list.innerHTML = data.map(city => {
+      const color = TIER_COLORS[city.tier] || 'var(--text-faint)';
+      const label = TIER_LABELS[city.tier] || city.tier;
+      return `
+        <div class="city-row" style="--tier-color:${color}">
+          <div class="city-row-left">
+            <span class="city-row-name">${city.cityName}</span>
+            <span class="city-row-tier">${label}</span>
+          </div>
+          <div class="city-row-right">
+            <span class="city-row-wbgt">${city.wbgt.toFixed(1)}°<span style="font-size:11px;color:var(--text-faint);font-weight:400;"> WBGT</span></span>
+            <span class="city-row-utci">UTCI ${city.utci.toFixed(1)}°</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function findWorst(data) {
+    let worst = null, worstCity = null;
+    data.forEach(c => {
+      if (TIER_ORDER.indexOf(c.tier) > TIER_ORDER.indexOf(worst)) { worst = c.tier; worstCity = c; }
+    });
+    return { tier: worst, city: worstCity };
+  }
+
+  function renderHeatOrb(data) {
+    const orb = document.getElementById('heatOrb');
+    const tempEl = document.getElementById('orbTemp');
+    const subEl = document.getElementById('orbSub');
+    const { tier, city } = findWorst(data);
+    if (!city) return;
+    orb.style.setProperty('--orb-color', TIER_HEX[tier] || '#5c5244');
+    tempEl.textContent = city.wbgt.toFixed(1) + '°';
+    subEl.textContent = `${TIER_LABELS[tier] || tier} · ${city.cityName} (WBGT)`;
+  }
+
+  function renderSafetyCallout(data) {
+    const callout = document.getElementById('safetyCallout');
+    const titleEl = document.getElementById('safetyTitle');
+    const bodyEl = document.getElementById('safetyBody');
+    const { tier: worst } = findWorst(data);
+    if (!worst || !SAFETY_COPY[worst]) { callout.classList.remove('show'); return; }
+    const affected = data.filter(c => c.tier === worst).map(c => c.cityName).join(', ');
+    callout.style.setProperty('--tier-color', TIER_COLORS[worst]);
+    titleEl.textContent = SAFETY_COPY[worst].title + ' — ' + affected;
+    bodyEl.textContent = SAFETY_COPY[worst].body;
+    callout.classList.add('show');
+  }
+
+  // ---------- DASHBOARD LOAD ----------
+  async function loadDashboard() {
+    const dot = document.getElementById('dashDot');
+    const status = document.getElementById('dashStatus');
+    const errorBanner = document.getElementById('dashError');
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/risk/cities`);
+      if (!res.ok) throw new Error('bad response');
+      const data = await res.json();
+
+      renderLegend(data);
+      renderScale(data);
+      renderCityList(data);
+      renderSafetyCallout(data);
+      renderHeatOrb(data);
+
+      dot.classList.remove('loading');
+      status.textContent = 'Live — updated ' + new Date().toLocaleTimeString();
+      errorBanner.style.display = 'none';
+
+      updateAlerts(data);
+    } catch (err) {
+      dot.classList.add('loading');
+      status.textContent = 'Connection failed';
+      errorBanner.style.display = 'block';
+    }
+  }
+
+  // ---------- ALERTS ----------
+  function relativeTime(ts) {
+    const diff = Math.round((Date.now() - ts) / 1000);
+    if (diff < 5) return 'just now';
+    if (diff < 60) return diff + 's ago';
+    const m = Math.round(diff / 60);
+    if (m < 60) return m + 'm ago';
+    return Math.round(m / 60) + 'h ago';
+  }
+
+  function updateAlerts(cityData) {
+    const now = Date.now();
+    cityData.forEach(city => {
+      const prev = previousTiers[city.cityName];
+      if (prev === undefined) {
+        if (city.tier === 'danger' || city.tier === 'extreme_danger') {
+          alertHistory.unshift({ cityName: city.cityName, tier: city.tier, wbgt: city.wbgt, ts: now, changed: false });
+        }
+      } else if (prev !== city.tier) {
+        alertHistory.unshift({ cityName: city.cityName, tier: city.tier, wbgt: city.wbgt, ts: now, changed: true, prevTier: prev });
+      }
+      previousTiers[city.cityName] = city.tier;
+    });
+    if (alertHistory.length > 30) alertHistory.length = 30;
+    renderAlertsLog();
+  }
+
+  function renderAlertsLog() {
+    const log = document.getElementById('alertsLog');
+    const chip = document.getElementById('alertsActiveCount');
+    const activeNow = Object.values(previousTiers).filter(t => t === 'danger' || t === 'extreme_danger').length;
+    if (activeNow > 0) {
+      chip.style.display = 'inline-flex';
+      chip.textContent = activeNow + (activeNow === 1 ? ' city active' : ' cities active');
+    } else {
+      chip.style.display = 'none';
+    }
+
+    const visible = alertFilter === 'active'
+      ? alertHistory.filter(e => e.tier === 'danger' || e.tier === 'extreme_danger')
+      : alertHistory;
+
+    if (visible.length === 0) {
+      log.innerHTML = `<div class="alerts-empty">${alertFilter === 'active'
+        ? 'No cities are currently at Danger or Extreme Danger.'
+        : 'No alerts recorded yet this session. Monitoring continues in the background.'}</div>`;
+      return;
+    }
+
+    const now = Date.now();
+    log.innerHTML = '';
+    visible.forEach(entry => {
+      const color = TIER_COLORS[entry.tier] || 'var(--text-faint)';
+      const label = TIER_LABELS[entry.tier] || entry.tier;
+      const msg = entry.changed
+        ? `Moved from ${TIER_LABELS[entry.prevTier] || entry.prevTier} to ${label} — WBGT ${entry.wbgt.toFixed(1)}°C`
+        : `Currently at ${label} — WBGT ${entry.wbgt.toFixed(1)}°C`;
+      const isNew = (now - entry.ts) < 15000;
+      const row = document.createElement('div');
+      row.className = 'alert-row' + (isNew ? ' is-new' : '');
+      row.style.setProperty('--tier-color', color);
+      row.innerHTML = `
+        <div class="alert-node"></div>
+        <div class="alert-body">
+          <div class="alert-top">
+            <span class="alert-city">${entry.cityName}</span>
+            <span class="alert-badge">${label}</span>
+            ${isNew ? '<span class="alert-new-badge">NEW</span>' : ''}
+          </div>
+          <div class="alert-msg">${msg}</div>
+        </div>
+        <div class="alert-time mono">${relativeTime(entry.ts)}</div>
+      `;
+      log.appendChild(row);
+    });
+  }
+
+  // ---------- FORECAST ----------
+  function renderCityTabs() {
+    const tabs = document.getElementById('cityTabs');
+    tabs.innerHTML = '';
+    CITIES.forEach((city, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'tab-btn' + (i === 0 ? ' active' : '');
+      btn.textContent = city;
+      btn.onclick = () => {
+        tabs.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        loadForecast(city);
+      };
+      tabs.appendChild(btn);
+    });
+  }
+
+  async function loadForecast(cityName) {
+    const wrap = document.getElementById('forecastChart');
+    const errorBanner = document.getElementById('forecastError');
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/risk/forecast?name=${encodeURIComponent(cityName)}`);
+      if (!res.ok) throw new Error('bad response');
+      const data = await res.json();
+
+      const temps = data.map(d => d.maxTempC);
+      const min = Math.min(...temps), max = Math.max(...temps);
+      const span = (max - min) || 1;
+
+      const n = data.length;
+      const barW = 70, gap = 20, marginX = 40;
+      const baseline = 180, maxBarH = 130;
+      const svgW = marginX * 2 + n * barW + (n - 1) * gap;
+
+      let bars = '', points = [];
+      data.forEach((day, i) => {
+        const norm = (day.maxTempC - min) / span;
+        const h = 20 + norm * maxBarH;
+        const x = marginX + i * (barW + gap);
+        const y = baseline - h;
+        const color = TIER_HEX[day.tier] || '#5c5244';
+        const dateObj = new Date(day.date);
+        const dayLabel = dateObj.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' });
+
+        bars += `<rect x="${x}" y="${y}" width="${barW}" height="${h}" fill="${color}" opacity="0.85"/>`;
+        bars += `<text x="${x + barW / 2}" y="${y - 10}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="${color}">${day.maxTempC.toFixed(0)}°</text>`;
+        bars += `<text x="${x + barW / 2}" y="${baseline + 22}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#a89a86">${dayLabel}</text>`;
+        bars += `<text x="${x + barW / 2}" y="${baseline + 38}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="${color}">${TIER_LABELS[day.tier] || day.tier}</text>`;
+        points.push(`${x + barW / 2},${y - 20}`);
+      });
+
+      const trendLine = `<polyline points="${points.join(' ')}" fill="none" stroke="#c9a15a" stroke-width="1.5" stroke-dasharray="3,4" opacity="0.7"/>`;
+      const baselineRule = `<line x1="${marginX - 10}" y1="${baseline}" x2="${svgW - marginX + 10}" y2="${baseline}" stroke="#2b241c" stroke-width="1"/>`;
+
+      wrap.innerHTML = `<svg viewBox="0 0 ${svgW} 220" role="img" aria-label="6-day WBGT forecast for ${cityName}">${baselineRule}${bars}${trendLine}</svg>`;
+      errorBanner.style.display = 'none';
+    } catch (err) {
+      errorBanner.style.display = 'block';
+      wrap.innerHTML = '';
+    }
+  }
+
+  // ---------- INIT ----------
+  document.getElementById('safetyTipsToggle').onclick = (e) => {
+    const body = document.getElementById('safetyTipsBody');
+    body.classList.toggle('show');
+    e.target.textContent = body.classList.contains('show') ? 'Hide safety guidance' : 'See safety guidance';
+  };
+  document.querySelectorAll('#alertFilterTabs .tab-btn').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('#alertFilterTabs .tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      alertFilter = btn.dataset.filter;
+      renderAlertsLog();
+    };
+  });
+
+  renderCityTabs();
+  loadDashboard();
+  loadForecast(CITIES[0]);
+  setInterval(loadDashboard, 60000);
+  setInterval(renderAlertsLog, 20000);
+</script>
+
+</body>
+</html>

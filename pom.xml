@@ -30,10 +30,13 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+<<<<<<< HEAD
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
+=======
+>>>>>>> dd9b97caedc4cf4c05acd6389fa1753b491ad1a8
 	</dependencies>
 	<build>
 		<plugins>
